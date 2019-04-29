@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import {sync as glob} from 'fast-glob';
 import {
   AngularSvgIconsOptions,
   IconMatcher
@@ -9,7 +10,7 @@ export function getIconPathsFromTemplate(
   template: string,
   templateFilePath: string,
   matchers: IconMatcher[],
-  iconFilePathGetter: AngularSvgIconsOptions['iconFilePathById']
+  opts: AngularSvgIconsOptions
 ): string[] {
   const iconPaths = new Set<string>();
   const $ = cheerio.load(template);
@@ -19,22 +20,35 @@ export function getIconPathsFromTemplate(
 
     for (const svgComponent of svgComponents.toArray()) {
       const iconId = svgComponent.attribs[attrName.toLowerCase()];
-      const iconPath = iconFilePathGetter(iconId);
+      const iconPath = opts.iconFilePathById(iconId);
 
       if (!iconPath) {
         continue;
       }
 
-      if (iconId.includes('{{')) {
+      if (iconId.startsWith('{{') && iconId.endsWith('}}')) {
         throw new Error(
-          `Template "${basename(templateFilePath)}" contains <${tagName}/> component that has interpolation in it's ` +
-          `"${attrName}" attribute that is not supported: "${iconId}"`
+          `Template "${basename(templateFilePath)}" contains <${tagName}/> component with very greedy ` +
+          `"${attrName}" attribute: "${iconId}". Add some prefix or postfix to it to ensure that only needed icons ` +
+          `are included.`
         );
       }
 
-      iconPaths.add(iconPath);
+      for (const path of expandIconPath(iconPath)) {
+        iconPaths.add(path);
+      }
     }
   }
 
   return [...iconPaths];
+}
+
+function expandIconPath(iconPath: string): string[] {
+  if (!iconPath.includes('{{')) {
+    return [iconPath];
+  }
+
+  const iconsGlob = iconPath.replace(/{{.+?}}/g, '*');
+
+  return glob(iconsGlob, {absolute: true});
 }

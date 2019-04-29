@@ -8,25 +8,36 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const cheerio = __importStar(require("cheerio"));
+const fast_glob_1 = require("fast-glob");
 const path_1 = require("path");
-function getIconPathsFromTemplate(template, templateFilePath, matchers, iconFilePathGetter) {
+function getIconPathsFromTemplate(template, templateFilePath, matchers, opts) {
     const iconPaths = new Set();
     const $ = cheerio.load(template);
     for (const [tagName, attrName] of matchers) {
         const svgComponents = $(`${tagName}[${attrName}]`);
         for (const svgComponent of svgComponents.toArray()) {
             const iconId = svgComponent.attribs[attrName.toLowerCase()];
-            const iconPath = iconFilePathGetter(iconId);
+            const iconPath = opts.iconFilePathById(iconId);
             if (!iconPath) {
                 continue;
             }
-            if (iconId.includes('{{')) {
-                throw new Error(`Template "${path_1.basename(templateFilePath)}" contains <${tagName}/> component that has interpolation in it's ` +
-                    `"${attrName}" attribute that is not supported: "${iconId}"`);
+            if (iconId.startsWith('{{') && iconId.endsWith('}}')) {
+                throw new Error(`Template "${path_1.basename(templateFilePath)}" contains <${tagName}/> component with very greedy ` +
+                    `"${attrName}" attribute: "${iconId}". Add some prefix or postfix to it to ensure that only needed icons ` +
+                    `are included.`);
             }
-            iconPaths.add(iconPath);
+            for (const path of expandIconPath(iconPath)) {
+                iconPaths.add(path);
+            }
         }
     }
     return [...iconPaths];
 }
 exports.getIconPathsFromTemplate = getIconPathsFromTemplate;
+function expandIconPath(iconPath) {
+    if (!iconPath.includes('{{')) {
+        return [iconPath];
+    }
+    const iconsGlob = iconPath.replace(/{{.+?}}/g, '*');
+    return fast_glob_1.sync(iconsGlob, { absolute: true });
+}

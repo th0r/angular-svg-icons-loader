@@ -1,10 +1,10 @@
 import * as webpack from 'webpack';
+import * as fs from 'fs';
+import * as ts from 'typescript';
 import {
   getOptions,
   stringifyRequest
 } from 'loader-utils';
-import * as fs from 'fs';
-import * as ts from 'typescript';
 import {promisify} from 'util';
 import {getComponentTemplateUrl} from './get-component-template-url';
 import {getIconPathsFromTemplate} from './get-icon-paths-from-template';
@@ -19,7 +19,10 @@ import {resolveComponentTemplateUrl} from './resolve-component-template-url';
 
 const readFile = promisify(fs.readFile);
 
-export default async function angularSvgIconsLoader(this: webpack.loader.LoaderContext, content: string): Promise<void> {
+export default async function angularSvgIconsLoader(
+  this: webpack.loader.LoaderContext,
+  content: string
+): Promise<void> {
   const context = this;
   const callback = context.async() as webpack.loader.loaderCallback;
   const opts: Required<AngularSvgIconsOptions> = {
@@ -71,7 +74,7 @@ export default async function angularSvgIconsLoader(this: webpack.loader.LoaderC
 
   let iconPaths: string[];
   try {
-    iconPaths = getIconPathsFromTemplate(template, templateFilePath, iconMatchers, opts.iconFilePathById);
+    iconPaths = getIconPathsFromTemplate(template, templateFilePath, iconMatchers, opts);
   } catch (err) {
     return callback(err);
   }

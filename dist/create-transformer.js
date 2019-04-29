@@ -26,7 +26,7 @@ function createTransformer(opts) {
             const componentDir = path_1.dirname(source.fileName);
             const templateFilePath = resolve_component_template_url_1.resolveComponentTemplateUrl(source.fileName, templateUrl);
             const template = fs_1.readFileSync(templateFilePath, 'utf8');
-            const iconPaths = get_icon_paths_from_template_1.getIconPathsFromTemplate(template, templateFilePath, iconMatchers, opts.iconFilePathById);
+            const iconPaths = get_icon_paths_from_template_1.getIconPathsFromTemplate(template, templateFilePath, iconMatchers, opts);
             const importNodes = [];
             for (const iconPath of iconPaths) {
                 const importPath = path_1.relative(componentDir, iconPath);

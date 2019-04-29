@@ -15,9 +15,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const loader_utils_1 = require("loader-utils");
 const fs = __importStar(require("fs"));
 const ts = __importStar(require("typescript"));
+const loader_utils_1 = require("loader-utils");
 const util_1 = require("util");
 const get_component_template_url_1 = require("./get-component-template-url");
 const get_icon_paths_from_template_1 = require("./get-icon-paths-from-template");
@@ -64,7 +64,7 @@ function angularSvgIconsLoader(content) {
         const template = yield readFile(templateFilePath, 'utf8');
         let iconPaths;
         try {
-            iconPaths = get_icon_paths_from_template_1.getIconPathsFromTemplate(template, templateFilePath, iconMatchers, opts.iconFilePathById);
+            iconPaths = get_icon_paths_from_template_1.getIconPathsFromTemplate(template, templateFilePath, iconMatchers, opts);
         }
         catch (err) {
             return callback(err);
