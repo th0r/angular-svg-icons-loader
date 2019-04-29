@@ -69,7 +69,14 @@ export default async function angularSvgIconsLoader(this: webpack.loader.LoaderC
   context.addDependency(templateFilePath);
 
   const template = await readFile(templateFilePath, 'utf8');
-  const iconIds = getIconIdsFromTemplate(template, templateFilePath, iconMatchers);
+
+  let iconIds: string[];
+  try {
+    iconIds = getIconIdsFromTemplate(template, templateFilePath, iconMatchers);
+  } catch (err) {
+    return callback(err);
+  }
+
   const svgImports = iconIds.map(iconId =>
     `import ${stringifyRequest(context, opts.iconFilePathById(iconId))};\n`
   );

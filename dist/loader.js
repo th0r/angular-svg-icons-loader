@@ -62,7 +62,13 @@ function angularSvgIconsLoader(content) {
         }
         context.addDependency(templateFilePath);
         const template = yield readFile(templateFilePath, 'utf8');
-        const iconIds = get_icon_ids_from_template_1.getIconIdsFromTemplate(template, templateFilePath, iconMatchers);
+        let iconIds;
+        try {
+            iconIds = get_icon_ids_from_template_1.getIconIdsFromTemplate(template, templateFilePath, iconMatchers);
+        }
+        catch (err) {
+            return callback(err);
+        }
         const svgImports = iconIds.map(iconId => `import ${loader_utils_1.stringifyRequest(context, opts.iconFilePathById(iconId))};\n`);
         return callback(null, `${svgImports.join('')}${content}`);
     });
