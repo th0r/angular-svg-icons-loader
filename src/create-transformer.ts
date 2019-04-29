@@ -23,14 +23,22 @@ export function createTransformer(opts: AngularSvgIconsOptions): ts.TransformerF
       const templateFilePath = resolveComponentTemplateUrl(source.fileName, templateUrl);
       const template = readFileSync(templateFilePath, 'utf8');
       const iconIds = getIconIdsFromTemplate(template, templateFilePath, iconMatchers);
-      const importNodes = iconIds.map(iconId => {
-        const importPath = relative(componentDir, opts.iconFilePathById(iconId));
+      const importNodes: ts.ImportDeclaration[] = [];
+
+      for (const iconId of iconIds) {
+        const iconFilePath = opts.iconFilePathById(iconId);
+
+        if (!iconFilePath) {
+          continue;
+        }
+
+        const importPath = relative(componentDir, iconFilePath);
         const importDeclaration = ts.createImportDeclaration(undefined, undefined, undefined,
           ts.createLiteral(urlToRequest(importPath))
         );
         importDeclaration.parent = source;
-        return importDeclaration;
-      });
+        importNodes.push(importDeclaration);
+      }
 
       source.statements = ts.createNodeArray([
         ...importNodes,

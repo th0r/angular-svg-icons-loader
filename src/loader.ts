@@ -76,11 +76,17 @@ export default async function angularSvgIconsLoader(this: webpack.loader.LoaderC
     return callback(err);
   }
 
-  const svgImports = iconIds.map(iconId =>
-    `import ${stringifyRequest(context, opts.iconFilePathById(iconId))};\n`
-  );
+  let svgImports: string = '';
 
-  return callback(null, `${svgImports.join('')}${content}`);
+  for (const iconId of iconIds) {
+    const iconPath = opts.iconFilePathById(iconId);
+
+    if (iconPath) {
+      svgImports += `import ${stringifyRequest(context, iconPath)};\n`;
+    }
+  }
+
+  return callback(null, `${svgImports}${content}`);
 }
 
 function getTemplateUrl(componentFilePath: string, source: string): string | undefined {

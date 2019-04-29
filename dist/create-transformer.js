@@ -27,12 +27,17 @@ function createTransformer(opts) {
             const templateFilePath = resolve_component_template_url_1.resolveComponentTemplateUrl(source.fileName, templateUrl);
             const template = fs_1.readFileSync(templateFilePath, 'utf8');
             const iconIds = get_icon_ids_from_template_1.getIconIdsFromTemplate(template, templateFilePath, iconMatchers);
-            const importNodes = iconIds.map(iconId => {
-                const importPath = path_1.relative(componentDir, opts.iconFilePathById(iconId));
+            const importNodes = [];
+            for (const iconId of iconIds) {
+                const iconFilePath = opts.iconFilePathById(iconId);
+                if (!iconFilePath) {
+                    continue;
+                }
+                const importPath = path_1.relative(componentDir, iconFilePath);
                 const importDeclaration = ts.createImportDeclaration(undefined, undefined, undefined, ts.createLiteral(loader_utils_1.urlToRequest(importPath)));
                 importDeclaration.parent = source;
-                return importDeclaration;
-            });
+                importNodes.push(importDeclaration);
+            }
             source.statements = ts.createNodeArray([
                 ...importNodes,
                 ...source.statements

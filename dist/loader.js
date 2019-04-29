@@ -69,8 +69,14 @@ function angularSvgIconsLoader(content) {
         catch (err) {
             return callback(err);
         }
-        const svgImports = iconIds.map(iconId => `import ${loader_utils_1.stringifyRequest(context, opts.iconFilePathById(iconId))};\n`);
-        return callback(null, `${svgImports.join('')}${content}`);
+        let svgImports = '';
+        for (const iconId of iconIds) {
+            const iconPath = opts.iconFilePathById(iconId);
+            if (iconPath) {
+                svgImports += `import ${loader_utils_1.stringifyRequest(context, iconPath)};\n`;
+            }
+        }
+        return callback(null, `${svgImports}${content}`);
     });
 }
 exports.default = angularSvgIconsLoader;
