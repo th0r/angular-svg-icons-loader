@@ -9,20 +9,24 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const cheerio = __importStar(require("cheerio"));
 const path_1 = require("path");
-function getIconIdsFromTemplate(template, templateFilePath, matchers) {
-    const icons = new Set();
+function getIconPathsFromTemplate(template, templateFilePath, matchers, iconFilePathGetter) {
+    const iconPaths = new Set();
     const $ = cheerio.load(template);
     for (const [tagName, attrName] of matchers) {
         const svgComponents = $(`${tagName}[${attrName}]`);
         for (const svgComponent of svgComponents.toArray()) {
             const iconId = svgComponent.attribs[attrName.toLowerCase()];
+            const iconPath = iconFilePathGetter(iconId);
+            if (!iconPath) {
+                continue;
+            }
             if (iconId.includes('{{')) {
                 throw new Error(`Template "${path_1.basename(templateFilePath)}" contains <${tagName}/> component that has interpolation in it's ` +
                     `"${attrName}" attribute that is not supported: "${iconId}"`);
             }
-            icons.add(iconId);
+            iconPaths.add(iconPath);
         }
     }
-    return [...icons];
+    return [...iconPaths];
 }
-exports.getIconIdsFromTemplate = getIconIdsFromTemplate;
+exports.getIconPathsFromTemplate = getIconPathsFromTemplate;

@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import * as ts from 'typescript';
 import {promisify} from 'util';
 import {getComponentTemplateUrl} from './get-component-template-url';
-import {getIconIdsFromTemplate} from './get-icon-ids-from-template';
+import {getIconPathsFromTemplate} from './get-icon-paths-from-template';
 import {parseIconMatchers} from './parse-icon-matchers';
 import {
   AngularSvgIconsOptions,
@@ -69,21 +69,17 @@ export default async function angularSvgIconsLoader(this: webpack.loader.LoaderC
 
   const template = await readFile(templateFilePath, 'utf8');
 
-  let iconIds: string[];
+  let iconPaths: string[];
   try {
-    iconIds = getIconIdsFromTemplate(template, templateFilePath, iconMatchers);
+    iconPaths = getIconPathsFromTemplate(template, templateFilePath, iconMatchers, opts.iconFilePathById);
   } catch (err) {
     return callback(err);
   }
 
   let svgImports: string = '';
 
-  for (const iconId of iconIds) {
-    const iconPath = opts.iconFilePathById(iconId);
-
-    if (iconPath) {
-      svgImports += `import ${stringifyRequest(context, iconPath)};\n`;
-    }
+  for (const iconPath of iconPaths) {
+    svgImports += `import ${stringifyRequest(context, iconPath)};\n`;
   }
 
   return callback(null, `${svgImports}${content}`);

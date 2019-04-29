@@ -20,7 +20,7 @@ const fs = __importStar(require("fs"));
 const ts = __importStar(require("typescript"));
 const util_1 = require("util");
 const get_component_template_url_1 = require("./get-component-template-url");
-const get_icon_ids_from_template_1 = require("./get-icon-ids-from-template");
+const get_icon_paths_from_template_1 = require("./get-icon-paths-from-template");
 const parse_icon_matchers_1 = require("./parse-icon-matchers");
 const find_angular_compiler_plugin_1 = require("./find-angular-compiler-plugin");
 const plugin_1 = require("./plugin");
@@ -62,19 +62,16 @@ function angularSvgIconsLoader(content) {
         }
         context.addDependency(templateFilePath);
         const template = yield readFile(templateFilePath, 'utf8');
-        let iconIds;
+        let iconPaths;
         try {
-            iconIds = get_icon_ids_from_template_1.getIconIdsFromTemplate(template, templateFilePath, iconMatchers);
+            iconPaths = get_icon_paths_from_template_1.getIconPathsFromTemplate(template, templateFilePath, iconMatchers, opts.iconFilePathById);
         }
         catch (err) {
             return callback(err);
         }
         let svgImports = '';
-        for (const iconId of iconIds) {
-            const iconPath = opts.iconFilePathById(iconId);
-            if (iconPath) {
-                svgImports += `import ${loader_utils_1.stringifyRequest(context, iconPath)};\n`;
-            }
+        for (const iconPath of iconPaths) {
+            svgImports += `import ${loader_utils_1.stringifyRequest(context, iconPath)};\n`;
         }
         return callback(null, `${svgImports}${content}`);
     });

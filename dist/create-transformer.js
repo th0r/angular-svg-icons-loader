@@ -11,7 +11,7 @@ const path_1 = require("path");
 const fs_1 = require("fs");
 const ts = __importStar(require("typescript"));
 const get_component_template_url_1 = require("./get-component-template-url");
-const get_icon_ids_from_template_1 = require("./get-icon-ids-from-template");
+const get_icon_paths_from_template_1 = require("./get-icon-paths-from-template");
 const loader_utils_1 = require("loader-utils");
 const parse_icon_matchers_1 = require("./parse-icon-matchers");
 const resolve_component_template_url_1 = require("./resolve-component-template-url");
@@ -26,14 +26,10 @@ function createTransformer(opts) {
             const componentDir = path_1.dirname(source.fileName);
             const templateFilePath = resolve_component_template_url_1.resolveComponentTemplateUrl(source.fileName, templateUrl);
             const template = fs_1.readFileSync(templateFilePath, 'utf8');
-            const iconIds = get_icon_ids_from_template_1.getIconIdsFromTemplate(template, templateFilePath, iconMatchers);
+            const iconPaths = get_icon_paths_from_template_1.getIconPathsFromTemplate(template, templateFilePath, iconMatchers, opts.iconFilePathById);
             const importNodes = [];
-            for (const iconId of iconIds) {
-                const iconFilePath = opts.iconFilePathById(iconId);
-                if (!iconFilePath) {
-                    continue;
-                }
-                const importPath = path_1.relative(componentDir, iconFilePath);
+            for (const iconPath of iconPaths) {
+                const importPath = path_1.relative(componentDir, iconPath);
                 const importDeclaration = ts.createImportDeclaration(undefined, undefined, undefined, ts.createLiteral(loader_utils_1.urlToRequest(importPath)));
                 importDeclaration.parent = source;
                 importNodes.push(importDeclaration);
