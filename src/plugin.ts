@@ -1,14 +1,13 @@
-import {WebpackPluginInstance} from 'webpack/declarations/WebpackOptions';
 import {Compiler} from 'webpack';
 import {AngularCompilerPlugin} from '@ngtools/webpack';
 import {createTransformer} from './create-transformer';
-import {AngularSvgIconsLoaderOptions} from './loader';
+import {AngularSvgIconsOptions} from './types';
 
 const pluginName = 'AngularSvgIconsPlugin';
 
-export class AngularSvgIconsPlugin implements WebpackPluginInstance {
+export class AngularSvgIconsPlugin {
   constructor(
-    private opts: AngularSvgIconsLoaderOptions
+    private opts: AngularSvgIconsOptions
   ) {}
 
   apply(compiler: Compiler) {
@@ -20,10 +19,11 @@ export class AngularSvgIconsPlugin implements WebpackPluginInstance {
           ) as AngularCompilerPlugin;
 
         if (!angularCompilerPlugin) {
-          // TODO: support JIT compilation
+          // Loader should be used in JIT mode
           return;
         }
 
+        // @ts-ignore: accessing private property
         angularCompilerPlugin._transformers.unshift(
           createTransformer(this.opts)
         );

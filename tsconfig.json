@@ -12,7 +12,10 @@
       "node_modules/@types"
     ]
   },
-  "files": [
-    "src/*"
+  "include": [
+    "src/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

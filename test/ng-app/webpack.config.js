@@ -3,6 +3,10 @@ const {AngularSvgIconsPlugin} = require('../../dist');
 
 const SRC_ROOT = `${__dirname}/src`;
 const SVG_ICONS_ROOT = `${SRC_ROOT}/app/icons`;
+const svgIconsOptions = {
+  iconMatchers: ['<app-svg-icon iconId>'],
+  iconFilePathById: iconId => `${SVG_ICONS_ROOT}/${iconId}.svg`
+};
 
 module.exports = (env = {}) => {
   const plugins = [];
@@ -13,6 +17,13 @@ module.exports = (env = {}) => {
       {
         test: /\.ts$/,
         loaders: [
+          {
+            loader: require.resolve('./log-loader'),
+            options: {
+              id: 'after ts-loader',
+              filter: /\.component\.ts$/
+            }
+          },
           {
             loader: 'ts-loader',
             options: {
@@ -31,7 +42,7 @@ module.exports = (env = {}) => {
           {
             loader: require.resolve('./log-loader'),
             options: {
-              id: 'after ngtools',
+              id: 'after ngtools/webpack loader',
               filter: /\.component\.ts$/
             }
           },
@@ -44,15 +55,12 @@ module.exports = (env = {}) => {
       new AngularCompilerPlugin({
         tsConfigPath: './src/tsconfig.app.json'
       }),
-      new AngularSvgIconsPlugin({
-        iconFilePathById: iconId => `${SVG_ICONS_ROOT}/${iconId}.svg`
-      })
+      new AngularSvgIconsPlugin(svgIconsOptions)
     );
   }
 
   return {
-    mode: 'development',
-    watch: true,
+    mode: 'production',
     resolve: {
       extensions: ['.ts', '.js']
     },
@@ -72,12 +80,16 @@ module.exports = (env = {}) => {
         {
           test: /\.component\.ts$/,
           loaders: [
-            /*{
-              loader: require.resolve('../../dist/loader'),
+            {
+              loader: require.resolve('./log-loader'),
               options: {
-                iconFilePathById: iconId => `${SVG_ICONS_ROOT}/${iconId}.svg`
+                id: 'after svg-icons-loader'
               }
-            }*/
+            },
+            {
+              loader: require.resolve('../../dist/loader'),
+              options: svgIconsOptions
+            }
           ]
         },
         {
