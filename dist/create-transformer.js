@@ -14,6 +14,7 @@ const get_component_template_url_1 = require("./get-component-template-url");
 const get_icon_ids_from_template_1 = require("./get-icon-ids-from-template");
 const loader_utils_1 = require("loader-utils");
 const parse_icon_matchers_1 = require("./parse-icon-matchers");
+const resolve_component_template_url_1 = require("./resolve-component-template-url");
 function createTransformer(opts) {
     const iconMatchers = parse_icon_matchers_1.parseIconMatchers(opts.iconMatchers);
     return function angularSvgIconsTransformerFactory() {
@@ -23,7 +24,7 @@ function createTransformer(opts) {
                 return source;
             }
             const componentDir = path_1.dirname(source.fileName);
-            const templateFilePath = path_1.resolve(componentDir, templateUrl);
+            const templateFilePath = resolve_component_template_url_1.resolveComponentTemplateUrl(source.fileName, templateUrl);
             const template = fs_1.readFileSync(templateFilePath, 'utf8');
             const iconIds = get_icon_ids_from_template_1.getIconIdsFromTemplate(template, templateFilePath, iconMatchers);
             const importNodes = iconIds.map(iconId => {

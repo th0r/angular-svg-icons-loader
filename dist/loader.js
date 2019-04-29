@@ -24,6 +24,7 @@ const get_icon_ids_from_template_1 = require("./get-icon-ids-from-template");
 const parse_icon_matchers_1 = require("./parse-icon-matchers");
 const find_angular_compiler_plugin_1 = require("./find-angular-compiler-plugin");
 const plugin_1 = require("./plugin");
+const resolve_component_template_url_1 = require("./resolve-component-template-url");
 const readFile = util_1.promisify(fs.readFile);
 function angularSvgIconsLoader(content) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -51,13 +52,12 @@ function angularSvgIconsLoader(content) {
         catch (err) {
             return callback(err);
         }
-        let templateFilePath = getTemplateUrl(context.resource, content);
+        let templateFilePath = getTemplateUrl(context.resourcePath, content);
         if (!templateFilePath) {
             return callback(null, content);
         }
-        const resolveRequest = util_1.promisify(context.resolve.bind(context, context.context));
-        templateFilePath = yield resolveRequest(templateFilePath);
-        if (!templateFilePath || !fs.existsSync(templateFilePath)) {
+        templateFilePath = resolve_component_template_url_1.resolveComponentTemplateUrl(context.resourcePath, templateFilePath);
+        if (!fs.existsSync(templateFilePath)) {
             return callback(null, content);
         }
         context.addDependency(templateFilePath);
@@ -74,7 +74,7 @@ function angularSvgIconsLoader(content) {
     });
 }
 exports.default = angularSvgIconsLoader;
-function getTemplateUrl(filePath, source) {
-    const sourceAst = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true);
+function getTemplateUrl(componentFilePath, source) {
+    const sourceAst = ts.createSourceFile(componentFilePath, source, ts.ScriptTarget.Latest, true);
     return get_component_template_url_1.getComponentTemplateUrl(sourceAst);
 }

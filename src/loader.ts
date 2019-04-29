@@ -15,6 +15,7 @@ import {
 } from './types';
 import {findAngularCompilerPlugin} from './find-angular-compiler-plugin';
 import {AngularSvgIconsPlugin} from './plugin';
+import {resolveComponentTemplateUrl} from './resolve-component-template-url';
 
 const readFile = promisify(fs.readFile);
 
@@ -52,17 +53,15 @@ export default async function angularSvgIconsLoader(this: webpack.loader.LoaderC
     return callback(err);
   }
 
-  let templateFilePath = getTemplateUrl(context.resource, content);
+  let templateFilePath = getTemplateUrl(context.resourcePath, content);
 
   if (!templateFilePath) {
     return callback(null, content);
   }
 
-  const resolveRequest = promisify(context.resolve.bind(context, context.context));
+  templateFilePath = resolveComponentTemplateUrl(context.resourcePath, templateFilePath);
 
-  templateFilePath = await resolveRequest(templateFilePath);
-
-  if (!templateFilePath || !fs.existsSync(templateFilePath)) {
+  if (!fs.existsSync(templateFilePath)) {
     return callback(null, content);
   }
 
@@ -84,9 +83,9 @@ export default async function angularSvgIconsLoader(this: webpack.loader.LoaderC
   return callback(null, `${svgImports.join('')}${content}`);
 }
 
-function getTemplateUrl(filePath: string, source: string): string | undefined {
+function getTemplateUrl(componentFilePath: string, source: string): string | undefined {
   const sourceAst = ts.createSourceFile(
-    filePath,
+    componentFilePath,
     source,
     ts.ScriptTarget.Latest,
     true

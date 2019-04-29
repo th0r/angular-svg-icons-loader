@@ -6,6 +6,7 @@ import {getIconIdsFromTemplate} from './get-icon-ids-from-template';
 import {urlToRequest} from 'loader-utils';
 import {parseIconMatchers} from './parse-icon-matchers';
 import {AngularSvgIconsOptions} from './types';
+import {resolveComponentTemplateUrl} from './resolve-component-template-url';
 
 export function createTransformer(opts: AngularSvgIconsOptions): ts.TransformerFactory<ts.SourceFile> {
   const iconMatchers = parseIconMatchers(opts.iconMatchers);
@@ -19,7 +20,7 @@ export function createTransformer(opts: AngularSvgIconsOptions): ts.TransformerF
       }
 
       const componentDir = dirname(source.fileName);
-      const templateFilePath = resolve(componentDir, templateUrl);
+      const templateFilePath = resolveComponentTemplateUrl(source.fileName, templateUrl);
       const template = readFileSync(templateFilePath, 'utf8');
       const iconIds = getIconIdsFromTemplate(template, templateFilePath, iconMatchers);
       const importNodes = iconIds.map(iconId => {
