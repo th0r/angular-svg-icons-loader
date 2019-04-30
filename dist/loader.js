@@ -34,15 +34,21 @@ function angularSvgIconsLoader(content) {
         if (context.cacheable) {
             context.cacheable(true);
         }
-        const plugins = context._compiler.options.plugins || [];
-        const angularCompilerPlugin = find_angular_compiler_plugin_1.findAngularCompilerPlugin(plugins);
-        const svgIconsPlugin = plugins.find(plugin => plugin instanceof plugin_1.AngularSvgIconsPlugin);
-        if (angularCompilerPlugin) {
-            if (svgIconsPlugin) {
-                return callback(null, content);
-            }
-            else {
-                return callback(new Error(`You need to use "AngularSvgIconsPlugin" in AoT`));
+        // If this plugin is used with `thread-loader` then `_compiler` is not available.
+        // `AngularCompilerPlugin` doesn't support this case so it can't be AoT.
+        if (context._compiler) {
+            const plugins = context._compiler.options.plugins || [];
+            const angularCompilerPlugin = find_angular_compiler_plugin_1.findAngularCompilerPlugin(plugins);
+            const svgIconsPlugin = plugins.find(plugin => plugin instanceof plugin_1.AngularSvgIconsPlugin);
+            if (angularCompilerPlugin) {
+                // It's an AoT
+                if (svgIconsPlugin) {
+                    // Don't use loader because everything will be handled by a plugin
+                    return callback(null, content);
+                }
+                else {
+                    return callback(new Error(`You need to use "AngularSvgIconsPlugin" in AoT`));
+                }
             }
         }
         let iconMatchers;

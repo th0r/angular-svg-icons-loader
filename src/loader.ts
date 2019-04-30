@@ -34,17 +34,23 @@ export default async function angularSvgIconsLoader(
     context.cacheable(true);
   }
 
-  const plugins: webpack.Plugin[] = context._compiler.options.plugins || [];
-  const angularCompilerPlugin = findAngularCompilerPlugin(plugins);
-  const svgIconsPlugin = plugins.find(plugin => plugin instanceof AngularSvgIconsPlugin);
+  // If this plugin is used with `thread-loader` then `_compiler` is not available.
+  // `AngularCompilerPlugin` doesn't support this case so it can't be AoT.
+  if (context._compiler) {
+    const plugins: webpack.Plugin[] = context._compiler.options.plugins || [];
+    const angularCompilerPlugin = findAngularCompilerPlugin(plugins);
+    const svgIconsPlugin = plugins.find(plugin => plugin instanceof AngularSvgIconsPlugin);
 
-  if (angularCompilerPlugin) {
-    if (svgIconsPlugin) {
-      return callback(null, content);
-    } else {
-      return callback(
-        new Error(`You need to use "AngularSvgIconsPlugin" in AoT`)
-      );
+    if (angularCompilerPlugin) {
+      // It's an AoT
+      if (svgIconsPlugin) {
+        // Don't use loader because everything will be handled by a plugin
+        return callback(null, content);
+      } else {
+        return callback(
+          new Error(`You need to use "AngularSvgIconsPlugin" in AoT`)
+        );
+      }
     }
   }
 
