@@ -34,7 +34,7 @@ function angularSvgIconsLoader(content) {
         if (context.cacheable) {
             context.cacheable(true);
         }
-        const plugins = context._compilation.options.plugins;
+        const plugins = context._compiler.options.plugins || [];
         const angularCompilerPlugin = find_angular_compiler_plugin_1.findAngularCompilerPlugin(plugins);
         const svgIconsPlugin = plugins.find(plugin => plugin instanceof plugin_1.AngularSvgIconsPlugin);
         if (angularCompilerPlugin) {

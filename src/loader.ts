@@ -34,7 +34,7 @@ export default async function angularSvgIconsLoader(
     context.cacheable(true);
   }
 
-  const plugins: webpack.Plugin[] = context._compilation.options.plugins;
+  const plugins: webpack.Plugin[] = context._compiler.options.plugins || [];
   const angularCompilerPlugin = findAngularCompilerPlugin(plugins);
   const svgIconsPlugin = plugins.find(plugin => plugin instanceof AngularSvgIconsPlugin);
 
