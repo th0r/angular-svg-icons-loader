@@ -6,11 +6,14 @@ export type IconMatcher = [
 ];
 
 export interface AngularSvgIconsOptions {
-  // Function that must return an *absolute* path to the icon by its ID.
-  // It may also return `null` or `undefined` to ignore this icon and and don't add and `import` statement for it.
-  iconFilePathById: (iconId: string) => string | undefined | null;
+  // Template string that converts icon ID into an *absolute* path to the icon.
+  // `[id]` placeholder will be replaced by the icon ID.
+  iconFilePath: string;
   // List of icon matchers. Each of them should be a string in the following format: <component-name attr-name>.
   // E.g. "<app-svg-icon iconId>" matcher will search for `app-svg-icon` components and get icon ID from its
   // `iconId` attributes.
   iconMatchers: string[];
+  // Strings, containing regexps matching icon IDs that should will be ignored.
+  // E.g. '^(data|code)-'
+  ignoreIconIds?: string[];
 }

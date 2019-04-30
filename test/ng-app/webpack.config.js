@@ -5,7 +5,7 @@ const SRC_ROOT = `${__dirname}/src`;
 const SVG_ICONS_ROOT = `${SRC_ROOT}/app/icons`;
 const svgIconsOptions = {
   iconMatchers: ['<app-svg-icon iconId>'],
-  iconFilePathById: iconId => `${SVG_ICONS_ROOT}/${iconId}.svg`
+  iconFilePath: `${SVG_ICONS_ROOT}/[id].svg`
 };
 
 module.exports = (env = {}) => {

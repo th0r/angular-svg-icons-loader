@@ -13,14 +13,15 @@ const path_1 = require("path");
 function getIconPathsFromTemplate(template, templateFilePath, matchers, opts) {
     const iconPaths = new Set();
     const $ = cheerio.load(template);
+    const ignorePatterns = (opts.ignoreIconIds || []).map(str => new RegExp(str));
     for (const [tagName, attrName] of matchers) {
         const svgComponents = $(`${tagName}[${attrName}]`);
         for (const svgComponent of svgComponents.toArray()) {
             const iconId = svgComponent.attribs[attrName.toLowerCase()];
-            const iconPath = opts.iconFilePathById(iconId);
-            if (!iconPath) {
+            if (ignorePatterns.some(pattern => pattern.test(iconId))) {
                 continue;
             }
+            const iconPath = opts.iconFilePath.replace(/\[id]/g, iconId);
             if (iconId.startsWith('{{') && iconId.endsWith('}}')) {
                 throw new Error(`Template "${path_1.basename(templateFilePath)}" contains <${tagName}/> component with very greedy ` +
                     `"${attrName}" attribute: "${iconId}". Add some prefix or postfix to it to ensure that only needed icons ` +

@@ -14,17 +14,19 @@ export function getIconPathsFromTemplate(
 ): string[] {
   const iconPaths = new Set<string>();
   const $ = cheerio.load(template);
+  const ignorePatterns = (opts.ignoreIconIds || []).map(str => new RegExp(str));
 
   for (const [tagName, attrName] of matchers) {
     const svgComponents = $(`${tagName}[${attrName}]`);
 
     for (const svgComponent of svgComponents.toArray()) {
       const iconId = svgComponent.attribs[attrName.toLowerCase()];
-      const iconPath = opts.iconFilePathById(iconId);
 
-      if (!iconPath) {
+      if (ignorePatterns.some(pattern => pattern.test(iconId))) {
         continue;
       }
+
+      const iconPath = opts.iconFilePath.replace(/\[id]/g, iconId);
 
       if (iconId.startsWith('{{') && iconId.endsWith('}}')) {
         throw new Error(

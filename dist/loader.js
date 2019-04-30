@@ -30,7 +30,7 @@ function angularSvgIconsLoader(content) {
     return __awaiter(this, void 0, void 0, function* () {
         const context = this;
         const callback = context.async();
-        const opts = Object.assign({ iconMatchers: ['<app-svg-icon iconId>'] }, loader_utils_1.getOptions(context));
+        const opts = loader_utils_1.getOptions(context);
         if (context.cacheable) {
             context.cacheable(true);
         }

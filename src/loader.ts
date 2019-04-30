@@ -25,10 +25,7 @@ export default async function angularSvgIconsLoader(
 ): Promise<void> {
   const context = this;
   const callback = context.async() as webpack.loader.loaderCallback;
-  const opts: Required<AngularSvgIconsOptions> = {
-    iconMatchers: ['<app-svg-icon iconId>'],
-    ...getOptions(context) as AngularSvgIconsOptions
-  };
+  const opts = getOptions(context) as AngularSvgIconsOptions;
 
   if (context.cacheable) {
     context.cacheable(true);
