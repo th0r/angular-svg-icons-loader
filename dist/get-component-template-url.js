@@ -8,36 +8,23 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const ts = __importStar(require("typescript"));
-const { ClassDeclaration } = ts.SyntaxKind;
 function getComponentTemplateUrl(source) {
-    for (const node of source.statements) {
-        if (node.kind === ClassDeclaration &&
-            node.decorators &&
-            node.decorators.length) {
-            const componentDecorator = node.decorators.find(isComponentDecorator);
-            if (componentDecorator) {
-                return getTemplateUrlFromComponentDecorator(componentDecorator);
-            }
+    let templateUrl = undefined;
+    findTemplateUrl(source);
+    return templateUrl;
+    function findTemplateUrl(node) {
+        if (templateUrl) {
+            return;
+        }
+        if (ts.isIdentifier(node) &&
+            node.escapedText === 'templateUrl' &&
+            ts.isPropertyAssignment(node.parent) &&
+            ts.isStringLiteral(node.parent.initializer)) {
+            templateUrl = node.parent.initializer.text;
+        }
+        else {
+            ts.forEachChild(node, findTemplateUrl);
         }
     }
 }
 exports.getComponentTemplateUrl = getComponentTemplateUrl;
-function isComponentDecorator(decorator) {
-    return (decorator.expression.kind === ts.SyntaxKind.CallExpression &&
-        decorator.expression.expression.kind === ts.SyntaxKind.Identifier &&
-        decorator.expression.expression.text === 'Component');
-}
-function getTemplateUrlFromComponentDecorator(decorator) {
-    const componentOptionsObject = decorator.expression.arguments[0];
-    if (!componentOptionsObject || componentOptionsObject.kind !== ts.SyntaxKind.ObjectLiteralExpression) {
-        return;
-    }
-    const templateUrlProperty = componentOptionsObject.properties.find(prop => prop.kind === ts.SyntaxKind.PropertyAssignment &&
-        prop.name.kind === ts.SyntaxKind.Identifier &&
-        prop.name.text === 'templateUrl' &&
-        prop.initializer.kind === ts.SyntaxKind.StringLiteral);
-    if (!templateUrlProperty) {
-        return;
-    }
-    return templateUrlProperty.initializer.text;
-}
