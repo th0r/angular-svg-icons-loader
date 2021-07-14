@@ -1,47 +1,62 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getIconPathsFromTemplate = void 0;
-const cheerio = __importStar(require("cheerio"));
 const fast_glob_1 = require("fast-glob");
 const path_1 = require("path");
+const acorn_1 = require("acorn");
+const cheerio_1 = require("cheerio");
 function getIconPathsFromTemplate(template, templateFilePath, matchers, opts) {
     const iconPaths = new Set();
-    const $ = cheerio.load(template);
+    const $ = cheerio_1.load(template);
     const ignorePatterns = (opts.ignoreIconIds || []).map(str => new RegExp(str));
-    for (const [tagName, attrName] of matchers) {
-        const svgComponents = $(`${tagName}[${attrName}]`);
-        for (const svgComponent of svgComponents.toArray()) {
-            const iconId = svgComponent.attribs[attrName.toLowerCase()];
-            if (ignorePatterns.some(pattern => pattern.test(iconId))) {
-                continue;
+    for (let [tagName, attrName] of matchers) {
+        attrName = attrName.toLowerCase();
+        const boxedAttrName = `[${attrName}]`;
+        const matchedElems = $(tagName);
+        for (const elem of matchedElems) {
+            const attrs = elem.attribs;
+            if (attrs[attrName]) {
+                const iconId = attrs[attrName];
+                if (iconId.startsWith('{{') && iconId.endsWith('}}')) {
+                    throw new Error(`Template "${path_1.basename(templateFilePath)}" contains <${tagName}/> component with very greedy ` +
+                        `"${attrName}" attribute: "${iconId}". Add some prefix or postfix to it to ensure that only needed icons ` +
+                        `are included.`);
+                }
+                if (isIgnoredIcon(iconId, ignorePatterns)) {
+                    continue;
+                }
+                for (const path of expandIconPath(getIconPath(opts.iconFilePath, iconId))) {
+                    iconPaths.add(path);
+                }
             }
-            const iconPath = opts.iconFilePath.replace(/\[id]/g, iconId);
-            if (iconId.startsWith('{{') && iconId.endsWith('}}')) {
-                throw new Error(`Template "${path_1.basename(templateFilePath)}" contains <${tagName}/> component with very greedy ` +
-                    `"${attrName}" attribute: "${iconId}". Add some prefix or postfix to it to ensure that only needed icons ` +
-                    `are included.`);
-            }
-            for (const path of expandIconPath(iconPath)) {
-                iconPaths.add(path);
+            else if (attrs[boxedAttrName]) {
+                const iconIdExpression = attrs[boxedAttrName];
+                let ast;
+                try {
+                    ast = acorn_1.parse(iconIdExpression, { ecmaVersion: 'latest' });
+                }
+                catch (err) {
+                    continue;
+                }
+                const firstNode = ast.body[0];
+                // Checking for simple conditional expressions like `<expression> ? 'iconId1' : 'iconId2'`
+                if ((firstNode === null || firstNode === void 0 ? void 0 : firstNode.type) === 'ExpressionStatement' &&
+                    firstNode.expression.type === 'ConditionalExpression' &&
+                    firstNode.expression.consequent.type === 'Literal' &&
+                    typeof firstNode.expression.consequent.value === 'string' &&
+                    firstNode.expression.alternate.type === 'Literal' &&
+                    typeof firstNode.expression.alternate.value === 'string') {
+                    const iconIds = [
+                        firstNode.expression.consequent.value,
+                        firstNode.expression.alternate.value
+                    ];
+                    for (const iconId of iconIds) {
+                        if (isIgnoredIcon(iconId, ignorePatterns)) {
+                            continue;
+                        }
+                        iconPaths.add(getIconPath(opts.iconFilePath, iconId));
+                    }
+                }
             }
         }
     }
@@ -54,4 +69,10 @@ function expandIconPath(iconPath) {
     }
     const iconsGlob = iconPath.replace(/{{.+?}}/g, '*');
     return fast_glob_1.sync(iconsGlob, { absolute: true });
+}
+function getIconPath(pathTemplate, iconId) {
+    return pathTemplate.replace(/\[id]/g, iconId);
+}
+function isIgnoredIcon(iconId, ignorePatterns) {
+    return ignorePatterns.some(pattern => pattern.test(iconId));
 }

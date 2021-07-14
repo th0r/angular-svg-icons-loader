@@ -10,5 +10,5 @@ function findAngularWebpackPlugin(plugins) {
 }
 exports.findAngularWebpackPlugin = findAngularWebpackPlugin;
 function findWebpackPluginByName(plugins, name) {
-    return (plugins || []).find(plugin => plugin.constructor.name === name);
+    return (plugins || []).find((plugin) => plugin.constructor.name === name);
 }
