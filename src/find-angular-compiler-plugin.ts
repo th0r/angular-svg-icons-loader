@@ -1,4 +1,4 @@
-import * as webpack from 'webpack';
+import type * as webpack from 'webpack';
 import type {AngularCompilerPlugin, ivy} from '@ngtools/webpack';
 
 export function findAngularCompilerPlugin(plugins: webpack.Plugin[] | undefined): AngularCompilerPlugin | undefined {
@@ -14,6 +14,6 @@ function findWebpackPluginByName<TPlugin extends webpack.Plugin>(
   name: string
 ): TPlugin | undefined {
   return (plugins || []).find(
-    plugin => plugin.constructor.name === name
-  ) as TPlugin;
+    (plugin: webpack.Plugin): plugin is TPlugin => plugin.constructor.name === name
+  );
 }

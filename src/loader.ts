@@ -1,4 +1,4 @@
-import * as webpack from 'webpack';
+import type * as webpack from 'webpack';
 import * as fs from 'fs';
 import * as ts from 'typescript';
 import {
@@ -24,8 +24,8 @@ export default async function angularSvgIconsLoader(
   content: string
 ): Promise<void> {
   const context = this;
-  const callback = context.async() as webpack.loader.loaderCallback;
-  const opts = getOptions(context) as AngularSvgIconsOptions;
+  const callback = context.async()!;
+  const opts = getOptions(context) as unknown as Readonly<AngularSvgIconsOptions>;
 
   if (context.cacheable) {
     context.cacheable(true);
