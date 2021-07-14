@@ -39,17 +39,22 @@ function getIconPathsFromTemplate(template, templateFilePath, matchers, opts) {
                     continue;
                 }
                 const firstNode = ast.body[0];
-                // Checking for simple conditional expressions like `<expression> ? 'iconId1' : 'iconId2'`
+                /**
+                 * Checking for simple conditional expressions like:
+                 *   `<expression> ? 'iconId1' : 'iconId2'`
+                 *   `<expression> ? 'iconId1' : null
+                 *   `<expression> ? undefined : 'iconId2'
+                 */
                 if ((firstNode === null || firstNode === void 0 ? void 0 : firstNode.type) === 'ExpressionStatement' &&
                     firstNode.expression.type === 'ConditionalExpression' &&
                     firstNode.expression.consequent.type === 'Literal' &&
-                    typeof firstNode.expression.consequent.value === 'string' &&
+                    (typeof firstNode.expression.consequent.value === 'string' || firstNode.expression.consequent.value == null) &&
                     firstNode.expression.alternate.type === 'Literal' &&
-                    typeof firstNode.expression.alternate.value === 'string') {
+                    (typeof firstNode.expression.alternate.value === 'string' || firstNode.expression.alternate.value == null)) {
                     const iconIds = [
                         firstNode.expression.consequent.value,
                         firstNode.expression.alternate.value
-                    ];
+                    ].filter(Boolean);
                     for (const iconId of iconIds) {
                         if (isIgnoredIcon(iconId, ignorePatterns)) {
                             continue;
